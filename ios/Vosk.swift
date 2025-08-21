@@ -41,6 +41,8 @@ class Vosk: RCTEventEmitter {
     var formatInput: AVAudioFormat!
     /// A queue to process datas
     var processingQueue: DispatchQueue!
+    /// Controls whether or not input data is sent to the recognizer
+    var paused = false
     /// Keep the last processed result here
     var lastRecognizedResult: VoskResult?
     /// The timeout timer ref
@@ -124,7 +126,7 @@ class Vosk: RCTEventEmitter {
 
         do {
             // Ask the user for permission to use the mic if required then start the engine.
-            try audioSession.setCategory(.record, mode: .measurement, options: [])
+            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker])
             try audioSession.setActive(true)
 
             formatInput = inputNode.inputFormat(forBus: 0)
@@ -151,8 +153,12 @@ class Vosk: RCTEventEmitter {
             inputNode.installTap(onBus: 0,
                                  bufferSize: UInt32(sampleRate / 10),
                                  format: formatPcm) { buffer, time in
+
                 self.processingQueue.async {
+                    if (self.paused) { return }
+
                     let res = self.recognizeData(buffer: buffer)
+
                     DispatchQueue.main.async {
                         let parsedResult = try! JSONDecoder().decode(VoskResult.self, from: res.result!.data(using: .utf8)!)
                         if res.completed && self.hasListener && res.result != nil {
@@ -190,6 +196,8 @@ class Vosk: RCTEventEmitter {
                 }
             }
 
+            // make sure recognition starts unpaused
+            paused = false
             resolve("Recognizer successfully started")
         } catch {
             if hasListener {
@@ -208,6 +216,11 @@ class Vosk: RCTEventEmitter {
         if currentModel != nil {
             currentModel = nil // deinit model
         }
+    }
+
+    @objc(setPaused:)
+    func setPaused(p: Bool) -> Void {
+        paused = p
     }
 
     /// Stop speech recognition if started

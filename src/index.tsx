@@ -64,6 +64,11 @@ export default class Vosk {
   stop = () => VoskModule.stop();
 
   /**
+   * Controls whether or not input data is sent to the recognizer
+   */
+  setPaused = (p: boolean) => VoskModule.setPaused(p);
+
+  /**
    * Unloads the model, also stops the recognizer.
    */
   unload = () => VoskModule.unload();

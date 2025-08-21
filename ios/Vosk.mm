@@ -9,6 +9,8 @@ RCT_EXTERN_METHOD(loadModel:(NSString *)name
 
 RCT_EXTERN_METHOD(unload)
 
+RCT_EXTERN_METHOD(setPaused:(BOOL)p)
+
 RCT_EXTERN_METHOD(start:(NSDictionary *)options
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)

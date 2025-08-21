@@ -4,6 +4,7 @@ import { StyleSheet, View, Text, Button } from 'react-native';
 import Vosk from 'react-native-vosk';
 
 export default function App(): JSX.Element {
+  const [paused, setPaused] = useState<Boolean>(false);
   const [ready, setReady] = useState<Boolean>(false);
   const [recognizing, setRecognizing] = useState<Boolean>(false);
   const [result, setResult] = useState<string | undefined>();
@@ -52,6 +53,11 @@ export default function App(): JSX.Element {
     vosk.stop();
     console.log('Stoping recognition...');
     setRecognizing(false);
+  };
+
+  const pause = (v: boolean) => {
+    vosk.setPaused(v);
+    setPaused(v);
   };
 
   const unload = useCallback(() => {
@@ -125,7 +131,17 @@ export default function App(): JSX.Element {
         </View>
       )}
 
-      {recognizing && <Button onPress={stop} title="Stop" color="red" />}
+      {recognizing && (
+        <View style={styles.recordingButtons}>
+          <Button onPress={stop} title="Stop" color="red" />
+
+          <Button
+            onPress={() => pause(!paused)}
+            title={paused ? 'Unmute' : 'Mute'}
+            color={paused ? 'blue' : 'red'}
+          />
+        </View>
+      )}
 
       <Text>Recognized word:</Text>
       <Text>{result}</Text>
