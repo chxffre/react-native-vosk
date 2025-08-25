@@ -157,9 +157,8 @@ class Vosk: RCTEventEmitter {
                                  format: formatPcm) { buffer, time in
 
                 self.processingQueue.async {
-                    if (self.paused) { return }
-
-                    let res = self.recognizeData(buffer: buffer)
+                    let bufferToProcess = self.paused ? self.buildSilentBuffer(from: buffer) : buffer
+                    let res = self.recognizeData(buffer: bufferToProcess)
 
                     DispatchQueue.main.async {
                         let parsedResult = try! JSONDecoder().decode(VoskResult.self, from: res.result!.data(using: .utf8)!)
@@ -264,6 +263,25 @@ class Vosk: RCTEventEmitter {
         } catch {
             print("Error restoring AVAudioSession: \(error)")
         }
+    }
+
+    /// Create a silent buffer with the same properties as the given buffer
+    func buildSilentBuffer(from buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer {
+        let silentBuffer = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameCapacity)!
+        silentBuffer.frameLength = buffer.frameLength
+
+        // Fill with silence (zeros)
+        if let channelData = silentBuffer.int16ChannelData {
+            let frameCount = Int(silentBuffer.frameLength)
+            let channelCount = Int(silentBuffer.format.channelCount)
+
+            for channel in 0..<channelCount {
+                // Set all samples to 0 (silence)
+                memset(channelData[channel], 0, frameCount * MemoryLayout<Int16>.size)
+            }
+        }
+
+        return silentBuffer
     }
 
     /// Process the audio buffer and do recognition with Vosk
