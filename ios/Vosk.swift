@@ -45,6 +45,8 @@ class Vosk: RCTEventEmitter {
     var paused = false
     /// Keep the last processed result here
     var lastRecognizedResult: VoskResult?
+    /// Tracks whether or not a tap has been installed
+    var tapInstalled = false
     /// The timeout timer ref
     var timeoutTimer: Timer?
     /// The current grammar set
@@ -174,6 +176,8 @@ class Vosk: RCTEventEmitter {
                 }
             }
 
+            tapInstalled = true
+
             // Start the stream of audio data.
             audioEngine.prepare()
 
@@ -231,7 +235,11 @@ class Vosk: RCTEventEmitter {
 
     /// Do internal cleanup on stop recognition
     func stopInternal(withoutEvents: Bool) {
-        inputNode.removeTap(onBus: 0)
+        if (tapInstalled) {
+          inputNode.removeTap(onBus: 0)
+          tapInstalled = false
+        }
+
         if audioEngine.isRunning {
             audioEngine.stop()
             if hasListener && !withoutEvents {
