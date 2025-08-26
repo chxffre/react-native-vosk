@@ -128,7 +128,7 @@ class Vosk: RCTEventEmitter {
 
         do {
             // Ask the user for permission to use the mic if required then start the engine.
-            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker])
+            try audioSession.setCategory(.playAndRecord, options: [.defaultToSpeaker])
             try audioSession.setActive(true)
 
             formatInput = inputNode.inputFormat(forBus: 0)
@@ -157,6 +157,12 @@ class Vosk: RCTEventEmitter {
                                  format: formatPcm) { buffer, time in
 
                 self.processingQueue.async {
+                    if (self.paused) {
+                      print("[VOSK] silent");
+                    } else {
+                      print("[VOSK] active");
+                    }
+
                     let bufferToProcess = self.paused ? self.buildSilentBuffer(from: buffer) : buffer
                     let res = self.recognizeData(buffer: bufferToProcess)
 
@@ -223,6 +229,7 @@ class Vosk: RCTEventEmitter {
 
     @objc(setPaused:)
     func setPaused(p: Bool) -> Void {
+        print("Setting paused to", p)
         paused = p
     }
 
