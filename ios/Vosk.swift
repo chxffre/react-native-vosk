@@ -157,12 +157,6 @@ class Vosk: RCTEventEmitter {
                                  format: formatPcm) { buffer, time in
 
                 self.processingQueue.async {
-                    if (self.paused) {
-                      print("[VOSK] silent");
-                    } else {
-                      print("[VOSK] active");
-                    }
-
                     let bufferToProcess = self.paused ? self.buildSilentBuffer(from: buffer) : buffer
                     let res = self.recognizeData(buffer: bufferToProcess)
 
@@ -229,7 +223,6 @@ class Vosk: RCTEventEmitter {
 
     @objc(setPaused:)
     func setPaused(p: Bool) -> Void {
-        print("Setting paused to", p)
         paused = p
     }
 
